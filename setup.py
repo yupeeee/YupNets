@@ -6,7 +6,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="yupnets",
-    version="0.1.0",
+    version="0.1.3",
     description="",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -17,5 +17,8 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
+        # "torch",
+        # "torchvision",
+        "tqdm",
     ],
 )

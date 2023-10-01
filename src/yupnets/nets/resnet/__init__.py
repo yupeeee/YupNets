@@ -1,7 +1,7 @@
 from typing import Any, Optional
 
-from .utils import ResNet
 from . import cifar10, imagenet1k
+from .utils import ResNet
 
 __all__ = [
     "nets",

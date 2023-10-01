@@ -3,6 +3,9 @@ from typing import List, Optional, Type, Union
 import torch
 from torch import Tensor
 import torch.nn as nn
+from torchvision.utils import _log_api_usage_once
+
+from ...utils import Activation, Normalization
 
 __all__ = [
     "BasicBlock",
@@ -45,8 +48,6 @@ class BasicBlock(nn.Module):
             normalization_type: str = "BatchNorm2d",
             activation_type: str = "ReLU",
     ) -> None:
-        from ..utils import Activation, Normalization
-
         super().__init__()
         if groups != 1 or base_width != 64:
             raise ValueError("BasicBlock only supports groups=1 and base_width=64")
@@ -101,8 +102,6 @@ class Bottleneck(nn.Module):
             normalization_type: str = "BatchNorm2d",
             activation_type: str = "ReLU",
     ) -> None:
-        from ..utils import Activation, Normalization
-
         super().__init__()
         width = int(planes * (base_width / 64.0)) * groups
         # Both self.conv2 and self.downsample layers downsample the input when stride != 1
@@ -153,10 +152,8 @@ class ResNet(nn.Module):
             normalization_type: str = "BatchNorm2d",
             activation_type: str = "ReLU",
     ) -> None:
-        from ..utils import Activation, Normalization
-
         super().__init__()
-        # _log_api_usage_once(self)
+        _log_api_usage_once(self)
         self.normalization_type = normalization_type
         self._norm_layer = Normalization(normalization_type)
         self.activation_type = activation_type
