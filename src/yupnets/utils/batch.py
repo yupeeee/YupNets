@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from collections import defaultdict
 import torch
@@ -22,7 +22,6 @@ def merge_dict(
 
     for d in list_of_dict:  # you can list as many input dicts as you want here
         for key, value in d.items():
-            print(value.shape)
             merged_dict[key].append(value)
 
     for key, value in merged_dict.items():
@@ -31,22 +30,18 @@ def merge_dict(
     return merged_dict
 
 
-def merge(
-        batches: List,
-):
-    try:
-        if list(set(batches)) == [None]:
-            return None
+def merge(batches: List, ):
+    if list(set(batches)) == [None]:
+        return None
 
-    except:
-        if isinstance(batches[0], torch.Tensor):
-            return merge_tensor(batches)
+    elif isinstance(batches[0], torch.Tensor):
+        return merge_tensor(batches)
 
-        elif isinstance(batches[0], Dict):
-            return merge_dict(batches)
+    elif isinstance(batches[0], Dict):
+        return merge_dict(batches)
 
-        else:
-            raise ValueError(f"Unexpected type in batch: {type(batches[0])}")
+    else:
+        raise ValueError(f"Unexpected type in batch: {type(batches[0])}")
 
 
 class BatchManager:
@@ -63,7 +58,11 @@ class BatchManager:
     def __call__(
             self,
             data: torch.Tensor,
-    ) -> torch.Tensor:
+    ) -> Union[
+        None,
+        torch.Tensor,
+        Dict[Any, torch.Tensor],
+    ]:
         if self.batch_size is None:
             return self.func(data)
 
@@ -73,7 +72,8 @@ class BatchManager:
             res = []
 
             for batch in tqdm.tqdm(batches, disable=not self.verbose):
-                res.append(self.func(batch))
+                res_batch = self.func(batch)
+                res.append(res_batch)
 
             res = merge(res)
 

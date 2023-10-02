@@ -1,4 +1,4 @@
-from typing import Callable, Dict
+from typing import Callable, Dict, Union
 
 import torch
 
@@ -11,13 +11,14 @@ class FeatureExtractor(torch.nn.Module):
     def __init__(
             self,
             model: torch.nn.Module,
+            penultimate_only: bool = False,
             use_cuda: bool = False,
     ) -> None:
         from .utils import get_layer_ids, get_layer
         super().__init__()
 
         self.model = model
-        self._model = model
+        self.penultimate_only = penultimate_only
         self.use_cuda = use_cuda
         self.machine = "cuda" if use_cuda else "cpu"
 
@@ -53,7 +54,7 @@ class FeatureExtractor(torch.nn.Module):
     def forward(
             self,
             x: torch.Tensor,
-    ) -> Dict[str, torch.Tensor]:
+    ) -> Union[Dict[str, torch.Tensor], torch.Tensor]:
         self.model = getattr(self.model, "cuda" if self.use_cuda else "cpu")()
         _ = self.model(x.to(self.machine))
 
@@ -61,9 +62,21 @@ class FeatureExtractor(torch.nn.Module):
             hook.remove()
 
         features = self.features
+
+        if self.penultimate_only:
+            penultimate_layer_id = list(features.keys())[-2]
+            features = features[penultimate_layer_id]
+
+        if self.use_cuda:
+            torch.cuda.empty_cache()
+
         self.reset()
 
         return features
 
     def reset(self) -> None:
-        self.__init__(self._model, use_cuda=self.use_cuda)
+        self.__init__(
+            model=self.model,
+            penultimate_only=self.penultimate_only,
+            use_cuda=self.use_cuda,
+        )
