@@ -22,6 +22,7 @@ def merge_dict(
 
     for d in list_of_dict:  # you can list as many input dicts as you want here
         for key, value in d.items():
+            print(value.shape)
             merged_dict[key].append(value)
 
     for key, value in merged_dict.items():

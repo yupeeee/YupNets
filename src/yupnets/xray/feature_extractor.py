@@ -17,6 +17,7 @@ class FeatureExtractor(torch.nn.Module):
         super().__init__()
 
         self.model = model
+        self._model = model
         self.use_cuda = use_cuda
         self.machine = "cuda" if use_cuda else "cpu"
 
@@ -59,4 +60,10 @@ class FeatureExtractor(torch.nn.Module):
         for hook in self.hooks:
             hook.remove()
 
-        return self.features
+        features = self.features
+        self.reset()
+
+        return features
+
+    def reset(self) -> None:
+        self.__init__(self._model, use_cuda=self.use_cuda)
