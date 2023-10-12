@@ -14,10 +14,10 @@ nets = \
 
 
 def resnet_loader(
-        net: Optional[str] = None,
+        net: Optional[str] = "resnet",
         **kwargs: Any,
 ) -> ResNet:
-    if net is not None:
+    if net != "resnet":
         if net in cifar10.__all__:
             _kwargs = getattr(cifar10, net)
 
