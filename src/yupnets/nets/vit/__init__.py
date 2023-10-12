@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-from . import imagenet1k
+from . import cifar10, imagenet1k
 from .utils import VisionTransformer
 
 __all__ = [
@@ -9,6 +9,7 @@ __all__ = [
 ]
 
 nets = \
+    cifar10.__all__ + \
     imagenet1k.__all__
 
 
@@ -17,7 +18,10 @@ def vit_loader(
         **kwargs: Any,
 ) -> VisionTransformer:
     if net != "vit":
-        if net in imagenet1k.__all__:
+        if net in cifar10.__all__:
+            _kwargs = getattr(cifar10, net)
+
+        elif net in imagenet1k.__all__:
             _kwargs = getattr(imagenet1k, net)
 
         else:
