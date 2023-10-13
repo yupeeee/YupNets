@@ -1,10 +1,16 @@
 from .nets import *
+from .test import *
 from .utils import *
 from .xray import *
 
 __all__ = [
     # nets
     "load_net",
+
+    # test
+    "AccuracyTest",
+    "CalibrationTest",
+    "LinearityTest",
 
     # utils
     "Activation",
@@ -30,5 +36,7 @@ def load_net(
 
     else:
         raise ValueError(f"Unsupported net: {net}")
+
+    setattr(model, "name", net)
 
     return model
