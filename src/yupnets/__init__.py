@@ -10,6 +10,7 @@ __all__ = [
     # test
     "AccuracyTest",
     "CalibrationTest",
+    "HessianTest3D",
     "LinearityTest",
 
     # utils
@@ -29,13 +30,18 @@ def load_net(
         **kwargs,
 ):
     if net in resnet.nets or net == "resnet":
-        model = resnet.resnet_loader(net=net, **kwargs)
+        loader = resnet.resnet_loader
+
+    elif net in swin.nets or net == "swin":
+        loader = swin.swin_loader
 
     elif net in vit.nets or net == "vit":
-        model = vit.vit_loader(net=net, **kwargs)
+        loader = vit.vit_loader
 
     else:
         raise ValueError(f"Unsupported net: {net}")
+
+    model = loader(net=net, **kwargs)
 
     setattr(model, "name", net)
 
