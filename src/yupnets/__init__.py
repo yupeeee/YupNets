@@ -1,5 +1,6 @@
 from .nets import *
 from .test import *
+from .train import *
 from .utils import *
 from .xray import *
 
@@ -12,6 +13,9 @@ __all__ = [
     "CalibrationTest",
     "HessianTest3D",
     "LinearityTest",
+
+    # train
+    "SupervisedLearner",
 
     # utils
     "Activation",
