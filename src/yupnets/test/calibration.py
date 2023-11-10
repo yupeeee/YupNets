@@ -34,6 +34,7 @@ class CalibrationTest:
             dataset=dataset,
             batch_size=self.batch_size,
         )
+        model = getattr(model, self.machine)()
 
         signed_pred_confs = []
 

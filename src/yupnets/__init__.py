@@ -13,6 +13,7 @@ __all__ = [
     "CalibrationTest",
     "HessianTest3D",
     "LinearityTest",
+    "LossTest",
 
     # train
     "SupervisedLearner",

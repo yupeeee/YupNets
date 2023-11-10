@@ -7,6 +7,8 @@ import torch
 from torch.utils.data import DataLoader
 import tqdm
 
+from .utils import _desc
+
 __all__ = [
     "HessianTest3D",
 ]
@@ -47,7 +49,7 @@ class HessianTest3D:
 
         for lam1 in tqdm.trange(
                 num_trial,
-                desc=f"Performing Hessian test...",
+                desc=_desc(f"Hessian test", self.model_orig, dataset),
                 disable=not self.verbose,
         ):
             self.model_pert1 = self.perturb_model(

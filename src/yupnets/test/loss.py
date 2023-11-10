@@ -1,54 +1,52 @@
+import torch
+from torch import nn
 from torch.utils.data import DataLoader
 import tqdm
 
 from .utils import _desc
 
 __all__ = [
-    "AccuracyTest",
+    "LossTest",
 ]
 
 
-class AccuracyTest:
+class LossTest:
     def __init__(
             self,
-            top_k: int = 1,
             batch_size: int = 1,
             use_cuda: bool = False,
             verbose: bool = False,
     ) -> None:
-        self.top_k = top_k
         self.batch_size = batch_size
         self.use_cuda = use_cuda
         self.machine = "cuda" if use_cuda else "cpu"
         self.verbose = verbose
 
+        self.criterion = nn.CrossEntropyLoss(reduction="none")
+
     def __call__(
             self,
             model,
             dataset,
-    ) -> float:
+    ) -> torch.Tensor:
         dataloader = DataLoader(
             dataset=dataset,
             batch_size=self.batch_size,
         )
         model = getattr(model, self.machine)()
 
-        acc = 0.
+        losses = []
 
         for (data, targets) in tqdm.tqdm(
                 dataloader,
-                desc=_desc(f"Acc@{self.top_k}", model, dataset),
+                desc=_desc(f"Loss test", model, dataset),
                 disable=not self.verbose,
         ):
             data, targets = data.to(self.machine), targets.to(self.machine)
 
-            outputs = model(data)
+            outputs = model(data).detach()
 
-            _, preds = outputs.topk(k=self.top_k, dim=-1)
+            loss = self.criterion(outputs, targets)
+            losses.append(loss)
 
-            for k in range(self.top_k):
-                acc += float(preds[:, k].eq(targets).sum().detach().to("cpu"))
-
-        acc = acc / len(dataloader.dataset)
-
-        return acc
+        return torch.cat(losses, dim=0)
