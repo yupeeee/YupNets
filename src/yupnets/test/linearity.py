@@ -30,14 +30,14 @@ class LinearityTest:
         self.machine = "cuda" if use_cuda else "cpu"
         self.verbose = verbose
 
-        self.angles = list()
+        self.sims = list()
 
     def __call__(
             self,
             model,
             x: torch.Tensor,
             d: torch.Tensor,
-    ) ->List[float]:
+    ) -> List[float]:
         self.init_dict()
 
         for epsilon in tqdm.tqdm(
@@ -45,14 +45,14 @@ class LinearityTest:
                 desc=_desc("Linearity test", model),
                 disable=not self.verbose,
         ):
-            self.compute_angle(model, x, d, epsilon)
+            self.compute_sim(model, x, d, epsilon)
 
-        return self.angles
+        return self.sims
 
     def init_dict(
             self,
     ) -> None:
-        self.angles = list()
+        self.sims = list()
 
     def move(
             self,
@@ -67,14 +67,14 @@ class LinearityTest:
 
         return _x
 
-    def compute_angle(
+    def compute_sim(
             self,
             model,
             x: torch.Tensor,
             d: torch.Tensor,
             epsilon: float,
     ) -> None:
-        def angle_of_three_points(
+        def _sim(
                 i: torch.Tensor,
                 f1: torch.Tensor,
                 f2: torch.Tensor,
@@ -88,9 +88,7 @@ class LinearityTest:
             v1 = v1 / (torch.norm(v1, p="fro") + eps)
             v2 = v2 / (torch.norm(v2, p="fro") + eps)
 
-            angle = torch.acos(torch.dot(v1, v2).clamp(-1, 1))
-
-            return float(angle)
+            return float(torch.dot(v1, v2).clamp(-1, 1))
 
         x_eps = self.move(x, d, epsilon)
         x_eps_l = self.move(x, d, epsilon - self.delta)
@@ -100,10 +98,10 @@ class LinearityTest:
         y_eps_l = model(x_eps_l.to(self.machine))
         y_eps_r = model(x_eps_r.to(self.machine))
 
-        angle = angle_of_three_points(
+        sim = _sim(
             i=y_eps.reshape(-1),
             f1=y_eps_l.reshape(-1),
             f2=y_eps_r.reshape(-1),
         )
 
-        self.angles.append(np.pi - angle)
+        self.sims.append(np.pi - sim)

@@ -6,7 +6,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="yupnets",
-    version="0.1.12",
+    version="0.1.13",
     description="",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -18,6 +18,7 @@ setup(
     package_dir={"": "src"},
     install_requires=[
         "matplotlib",
+        "numpy",
         "pyhessian",
         "pyyaml",
         # "torch",
