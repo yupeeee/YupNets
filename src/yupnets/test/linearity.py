@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, List
+from typing import Iterable, List
 
 import numpy as np
 import torch
@@ -21,7 +21,7 @@ class LinearityTest:
             verbose: bool = False,
     ) -> None:
         if not isinstance(epsilons, list):
-            epsilons = list(epsilons)
+            epsilons = [float(eps) for eps in epsilons]
 
         self.epsilons = epsilons
         self.delta = delta
@@ -30,15 +30,15 @@ class LinearityTest:
         self.machine = "cuda" if use_cuda else "cpu"
         self.verbose = verbose
 
-        self.angles = dict(epsilon=epsilons)
+        self.angles = list()
 
     def __call__(
             self,
             model,
             x: torch.Tensor,
             d: torch.Tensor,
-    ) -> Dict[str, List[float]]:
-        self.init_dict(model, x)
+    ) ->List[float]:
+        self.init_dict()
 
         for epsilon in tqdm.tqdm(
                 self.epsilons,
@@ -49,29 +49,10 @@ class LinearityTest:
 
         return self.angles
 
-    def feature_extractor(
-            self,
-            model,
-    ):
-        from ..xray import FeatureExtractor
-
-        return FeatureExtractor(
-            model=model,
-            penultimate_only=False,
-            use_cuda=self.use_cuda,
-        )
-
     def init_dict(
             self,
-            model,
-            x: torch.Tensor,
     ) -> None:
-        assert len(self.angles) == 1
-
-        layers = list(self.feature_extractor(model)(x).keys())
-
-        for layer in layers:
-            self.angles[layer] = list()
+        self.angles = list()
 
     def move(
             self,
@@ -115,15 +96,14 @@ class LinearityTest:
         x_eps_l = self.move(x, d, epsilon - self.delta)
         x_eps_r = self.move(x, d, epsilon + self.delta)
 
-        y_eps = self.feature_extractor(model)(x_eps.to(self.machine))
-        y_eps_l = self.feature_extractor(model)(x_eps_l.to(self.machine))
-        y_eps_r = self.feature_extractor(model)(x_eps_r.to(self.machine))
+        y_eps = model(x_eps.to(self.machine))
+        y_eps_l = model(x_eps_l.to(self.machine))
+        y_eps_r = model(x_eps_r.to(self.machine))
 
-        for layer in y_eps.keys():
-            angle = angle_of_three_points(
-                i=y_eps[layer].reshape(-1),
-                f1=y_eps_l[layer].reshape(-1),
-                f2=y_eps_r[layer].reshape(-1),
-            )
+        angle = angle_of_three_points(
+            i=y_eps.reshape(-1),
+            f1=y_eps_l.reshape(-1),
+            f2=y_eps_r.reshape(-1),
+        )
 
-            self.angles[layer].append(np.pi - angle)
+        self.angles.append(np.pi - angle)
